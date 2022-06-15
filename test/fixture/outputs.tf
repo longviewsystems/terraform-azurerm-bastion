@@ -1,3 +1,3 @@
-output "test_LA" {
+output "test_bastion" {
   value = module.azure-bastion
 }
