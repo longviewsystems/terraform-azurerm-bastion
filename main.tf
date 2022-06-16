@@ -9,7 +9,6 @@ resource "azurerm_subnet" "bastion_snet" {
   address_prefixes     = var.azure_bastion_subnet_address_prefix
 }
 
-
 resource "azurerm_network_security_group" "bastion" {
   name                = "bastion"
   location            = var.location
@@ -19,116 +18,17 @@ resource "azurerm_network_security_group" "bastion" {
   ]
 }
 
-resource "azurerm_network_security_rule" "bastion_in_allow_https" {
-  name                        = "AllowHttpsInbound"
-  priority                    = 100
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "443"
-  source_address_prefix       = "Internet"
-  destination_address_prefix  = "*"
-  resource_group_name         = var.resource_group_name
-  network_security_group_name = azurerm_network_security_group.bastion.name
-}
-
-resource "azurerm_network_security_rule" "bastion_in_allow_gatewaymanager" {
-  name                        = "AllowGatewayManagerInbound"
-  priority                    = 110
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "443"
-  source_address_prefix       = "GatewayManager"
-  destination_address_prefix  = "*"
-  resource_group_name         = var.resource_group_name
-  network_security_group_name = azurerm_network_security_group.bastion.name
-}
-
-
-resource "azurerm_network_security_rule" "bastion_in_allow_loadbalancer" {
-  name                        = "AllowLoadBalancerInbound"
-  priority                    = 120
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "443"
-  source_address_prefix       = "AzureLoadBalancer"
-  destination_address_prefix  = "*"
-  resource_group_name         = var.resource_group_name
-  network_security_group_name = azurerm_network_security_group.bastion.name
-}
-
-resource "azurerm_network_security_rule" "bastion_in_allow_bastioncommunication" {
-  name                        = "AllowBastionHostCommunication"
-  priority                    = 130
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "*"
-  source_port_range           = "*"
-  destination_port_ranges     = [8080, 5701]
-  source_address_prefix       = "VirtualNetwork"
-  destination_address_prefix  = "VirtualNetwork"
-  resource_group_name         = var.resource_group_name
-  network_security_group_name = azurerm_network_security_group.bastion.name
-}
-
-
-resource "azurerm_network_security_rule" "bastion_out_allow_sshrdp" {
-  name                        = "AllowSshRdpOutbound"
-  priority                    = 100
-  direction                   = "Outbound"
-  access                      = "Allow"
-  protocol                    = "*"
-  source_port_range           = "*"
-  destination_port_ranges     = [22, 3389]
-  source_address_prefix       = "*"
-  destination_address_prefix  = "VirtualNetwork"
-  resource_group_name         = var.resource_group_name
-  network_security_group_name = azurerm_network_security_group.bastion.name
-}
-
-resource "azurerm_network_security_rule" "bastion_out_allow_azurecloud" {
-  name                        = "AllowAzureCloudOutbound"
-  priority                    = 110
-  direction                   = "Outbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "443"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "AzureCloud"
-  resource_group_name         = var.resource_group_name
-  network_security_group_name = azurerm_network_security_group.bastion.name
-}
-
-resource "azurerm_network_security_rule" "bastion_out_allow_bastion_communication" {
-  name                        = "AllowBastionCommunication"
-  priority                    = 120
-  direction                   = "Outbound"
-  access                      = "Allow"
-  protocol                    = "*"
-  source_port_range           = "*"
-  destination_port_ranges     = [8080, 5701]
-  source_address_prefix       = "VirtualNetwork"
-  destination_address_prefix  = "VirtualNetwork"
-  resource_group_name         = var.resource_group_name
-  network_security_group_name = azurerm_network_security_group.bastion.name
-}
-
-resource "azurerm_network_security_rule" "bastion_out_allow_http" {
-  name                        = "AllowGetSessionInformation"
-  priority                    = 130
-  direction                   = "Outbound"
-  access                      = "Allow"
-  protocol                    = "*"
-  source_port_range           = "*"
-  destination_port_range      = "80"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "Internet"
+resource "azurerm_network_security_rule" "bastion" {
+  for_each                    = local.nsgrules
+  name                        = each.key
+  direction                   = each.value.direction
+  access                      = each.value.access
+  priority                    = each.value.priority
+  protocol                    = each.value.protocol
+  source_port_range           = each.value.source_port_range
+  destination_port_ranges     = each.value.destination_port_ranges
+  source_address_prefix       = each.value.source_address_prefix
+  destination_address_prefix  = each.value.destination_address_prefix
   resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.bastion.name
 }
@@ -137,6 +37,7 @@ resource "azurerm_network_security_rule" "bastion_out_allow_http" {
 resource "azurerm_subnet_network_security_group_association" "bastion" {
   subnet_id                 = azurerm_subnet.bastion_snet.0.id
   network_security_group_id = azurerm_network_security_group.bastion.id
+  depends_on                = [azurerm_network_security_rule.bastion]
 }
 
 
