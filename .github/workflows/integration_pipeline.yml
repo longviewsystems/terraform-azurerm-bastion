@@ -84,7 +84,6 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.TENANT_ID_LVS }}
        
         
-
   convert_via_pandoc:
     name: 'Convert markdown to PDF using Pandoc'
     runs-on: ubuntu-latest
