@@ -1,6 +1,6 @@
 output "azure_bastion_subnet_id" {
   description = "The resource ID of Azure bastion subnet"
-  value       = element(concat([azurerm_subnet.bastion_snet.0.id], [""]), 0)
+  value       = element(concat([azurerm_subnet.bastion_snet[0].id], [""]), 0)
 }
 
 output "azure_bastion_public_ip" {

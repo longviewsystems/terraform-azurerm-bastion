@@ -35,7 +35,7 @@ resource "azurerm_network_security_rule" "bastion" {
 
 
 resource "azurerm_subnet_network_security_group_association" "bastion" {
-  subnet_id                 = azurerm_subnet.bastion_snet.0.id
+  subnet_id                 = azurerm_subnet.bastion_snet[0].id
   network_security_group_id = azurerm_network_security_group.bastion.id
   depends_on                = [azurerm_network_security_rule.bastion]
 }
@@ -79,7 +79,7 @@ resource "azurerm_bastion_host" "main" {
 
   ip_configuration {
     name                 = "${lower(var.azure_bastion_service_name)}-network"
-    subnet_id            = azurerm_subnet.bastion_snet.0.id
+    subnet_id            = azurerm_subnet.bastion_snet[0].id
     public_ip_address_id = azurerm_public_ip.pip.id
   }
 }
