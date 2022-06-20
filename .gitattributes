@@ -1,0 +1,8 @@
+# https://code.visualstudio.com/docs/remote/troubleshooting#_resolving-git-line-ending-issues-in-containers-resulting-in-many-modified-files
+# This fixes an issue where large number of files are changed, but there doesn't seem to be any changes to the files.
+
+# Force everything to be LF, except for Windows batch files that require CRLF.
+
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
